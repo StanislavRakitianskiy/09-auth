@@ -1,0 +1,30 @@
+.container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #2c2c2c;
+  color: white;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ddd;
+}
+
+.notesWrapper {
+  width: 100%;
+}
+.content {
+  margin: 0;
+  flex-grow: 1;
+  font-size: 14px;
+  color: #495057;
+  margin-bottom: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

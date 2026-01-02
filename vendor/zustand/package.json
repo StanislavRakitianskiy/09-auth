@@ -1,0 +1,23 @@
+{
+  "name": "zustand",
+  "version": "0.0.0-local",
+  "main": "index.js",
+  "module": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.js",
+      "require": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./middleware": {
+      "import": "./middleware.js",
+      "require": "./middleware.js",
+      "types": "./middleware.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "peerDependencies": {
+    "react": ">=17"
+  }
+}
