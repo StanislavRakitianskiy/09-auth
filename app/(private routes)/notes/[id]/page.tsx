@@ -6,7 +6,7 @@ import { fetchNoteById } from "@/lib/api/serverApi";
 import { APP_URL, OG_IMAGE_URL } from "@/lib/seo";
 
 type PageProps = {
-  params: Promise<{ id: string }>;
+   params: { id: string };
 };
 
 export async function generateMetadata({
