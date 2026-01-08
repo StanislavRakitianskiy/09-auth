@@ -1,0 +1,39 @@
+.mainContent {
+  padding: 24px;
+}
+
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.formTitle {
+  margin: 0;
+}
+
+.editProfileButton {
+  text-decoration: none;
+}
+
+.avatarWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar {
+  border-radius: 50%;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
