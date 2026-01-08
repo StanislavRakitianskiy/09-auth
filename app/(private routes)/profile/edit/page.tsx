@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -28,11 +28,13 @@ export default function EditProfilePage() {
     queryKey: ["me"],
     queryFn: getMe,
     refetchOnMount: true,
-    onSuccess: (fetchedUser) => {
-      setUser(fetchedUser);
-      setUsername(fetchedUser.username);
-    },
   });
+
+    useEffect(() => {
+    if (!profile) return;
+    setUser(profile);
+    setUsername(profile.username);
+  }, [profile, setUser]);
 
   const updateMutation = useMutation({
     mutationFn: (payload: { username: string }) => updateMe(payload),
