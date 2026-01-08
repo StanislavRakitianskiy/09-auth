@@ -5,8 +5,9 @@ const BACKEND_BASE_URL = "https://notehub-api.goit.study";
 const buildUrl = (endpoint: string) => `${BACKEND_BASE_URL}${endpoint}`;
 
 const appendSetCookies = (response: Response, target: NextResponse) => {
-  const getSetCookie = (response as unknown as { headers: { getSetCookie?: () => string[] } }).headers
-    .getSetCookie;
+  const responseHeaders = (response as unknown as { headers: { getSetCookie?: () => string[] } })
+    .headers;
+  const getSetCookie = responseHeaders?.getSetCookie?.bind(responseHeaders);
 
   const cookies =
     typeof getSetCookie === "function"
