@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -17,7 +17,6 @@ const placeholderAvatar = "https://ac.goit.global/fullstack/react/placeholder-av
 export default function EditProfilePage() {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
-  const [username, setUsername] = useState(user?.username ?? "");
 
   const {
     data: profile,
@@ -29,12 +28,6 @@ export default function EditProfilePage() {
     queryFn: getMe,
     refetchOnMount: true,
   });
-
-    useEffect(() => {
-    if (!profile) return;
-    setUser(profile);
-    setUsername(profile.username);
-  }, [profile, setUser]);
 
   const updateMutation = useMutation({
     mutationFn: (payload: { username: string }) => updateMe(payload),
@@ -50,6 +43,8 @@ export default function EditProfilePage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const username = String(formData.get("username") ?? "").trim();
     const trimmed = username.trim();
     if (!trimmed) return;
 
@@ -88,8 +83,8 @@ export default function EditProfilePage() {
               id="username"
               type="text"
               className={css.input}
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
+              name="username"
+              defaultValue={displayUser?.username ?? ""}
               required
             />
           </div>
