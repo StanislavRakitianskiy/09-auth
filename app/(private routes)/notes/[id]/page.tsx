@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
+import { cookies } from "next/headers";
 import NoteDetailsClient from "./NoteDetails.client";
-import { fetchNoteById } from "@/lib/api";
+import { fetchNoteById } from "@/lib/api/serverApi";
 import { APP_URL, OG_IMAGE_URL } from "@/lib/seo";
 
 type PageProps = {
@@ -11,11 +12,12 @@ type PageProps = {
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const { id } = params;
+  const cookieHeader = cookies().toString();
   const url = `${APP_URL}/notes/${id}`;
 
   try {
-    const note = await fetchNoteById(id);
+    const note = await fetchNoteById(id, cookieHeader);
     const description =
       note.content?.trim().slice(0, 150) ||
       `Read the ${note.tag} note "${note.title}" on NoteHub.`;
@@ -56,13 +58,14 @@ export async function generateMetadata({
 }
 
 export default async function NoteDetailsPage({ params }: PageProps) {
-  const { id } = await params;
+  const { id } = params;
+  const cookieHeader = cookies().toString();
 
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ["note", id],
-    queryFn: () => fetchNoteById(id),
+    queryFn: () => fetchNoteById(id, cookieHeader),
   });
 
   return (

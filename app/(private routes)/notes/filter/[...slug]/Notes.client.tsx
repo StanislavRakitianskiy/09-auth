@@ -6,7 +6,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { useDebounce } from "use-debounce";
 
 import css from "./Notes.module.css";
-import { fetchNotes, type FetchNotesResponse } from "@/lib/api";
+import { fetchNotes, type FetchNotesResponse } from "@/lib/api/clientApi";
 import type { Note, NoteTag } from "@/types/note";
 
 import NoteList from "@/components/NoteList/NoteList";
@@ -30,7 +30,7 @@ export default function NotesClient({ initialTag }: { initialTag?: NoteTag }) {
         page,
         perPage: NOTES_PER_PAGE,
         search: debouncedSearch || undefined,
-        tag: initialTag, // важливо: all => undefined
+        tag: initialTag,
       }),
     placeholderData: keepPreviousData,
   });

@@ -14,6 +14,7 @@
     "formik": "^2.4.9",
     "modern-normalize": "^3.0.1",
     "next": "16.0.10",
+    "proxy": "^2.2.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "react-paginate": "^8.3.0",

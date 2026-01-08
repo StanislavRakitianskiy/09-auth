@@ -1,0 +1,38 @@
+.navigationItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.navigationLink {
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+}
+
+.navigationLink:hover,
+.navigationLink:focus-visible {
+  color: #ddd;
+}
+
+.userEmail {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #f5f5f5;
+}
+
+.logoutButton {
+  border: 1px solid #fff;
+  background: transparent;
+  color: #fff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.logoutButton:hover,
+.logoutButton:focus-visible {
+  background-color: #fff;
+  color: #333;
+}
