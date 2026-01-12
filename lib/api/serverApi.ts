@@ -1,4 +1,5 @@
 import axios, { type AxiosResponse } from "axios";
+import { cookies } from "next/headers";
 
 import apiClient from "./api";
 import type {
@@ -24,44 +25,40 @@ const extractNotesResponse = (
   return data;
 };
 
-const withCookies = (cookieHeader?: string) =>
-  cookieHeader ? { Cookie: cookieHeader } : undefined;
 
 export const fetchNotes = async (
-  params: FetchNotesParams,
-  cookieHeader?: string
+  params: FetchNotesParams
 ): Promise<FetchNotesResponse> => {
+  const cookieHeader = cookies().toString();
   const response = await apiClient.get<FetchNotesResponse | Note[]>("/notes", {
     params,
-    headers: withCookies(cookieHeader),
+    headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
   });
 
   return extractNotesResponse(response);
 };
 
-export const fetchNoteById = async (
-  id: string,
-  cookieHeader?: string
-): Promise<Note> => {
+  export const fetchNoteById = async (id: string): Promise<Note> => {
+  const cookieHeader = cookies().toString();
   const { data } = await apiClient.get<Note>(`/notes/${id}`, {
-    headers: withCookies(cookieHeader),
+    headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
   });
   return data;
 };
 
-export const getMe = async (cookieHeader?: string): Promise<User> => {
+  export const getMe = async (): Promise<User> => {
+  const cookieHeader = cookies().toString();
   const { data } = await apiClient.get<User>("/users/me", {
-    headers: withCookies(cookieHeader),
+    headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
   });
   return data;
 };
 
-export const checkSession = async (
-  cookieHeader?: string
-): Promise<AxiosResponse<User | null>> => {
+  export const checkSession = async (): Promise<AxiosResponse<User | null>> => {
+  const cookieHeader = cookies().toString();
   try {
     return await apiClient.get<User | null>("/auth/session", {
-      headers: withCookies(cookieHeader),
+      headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
     });
   } catch (error) {
         if (axios.isAxiosError(error) && error.response) {

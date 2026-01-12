@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
-import { cookies } from "next/headers";
 import type { NoteTag } from "@/types/note";
 import { fetchNotes } from "@/lib/api/serverApi";
 import NotesClient from "./Notes.client";
@@ -40,7 +39,6 @@ export async function generateMetadata({
 export default async function FilteredNotesPage({ params }: PageProps) {
   const { slug } = params;
   const selected = slug?.[0] ?? "all";
-  const cookieHeader = cookies().toString();
 
   const tagParam = selected === "all" ? undefined : (selected as NoteTag);
 
@@ -53,7 +51,7 @@ export default async function FilteredNotesPage({ params }: PageProps) {
         page: 1,
         perPage: NOTES_PER_PAGE,
         tag: tagParam,
-      }, cookieHeader),
+      }),
   });
 
   return (

@@ -14,9 +14,6 @@ const isApiRequest = (pathname: string) => pathname.startsWith("/api");
 const getToken = (request: NextRequest, name: string) =>
   request.cookies.get(name)?.value;
 
-const getCookieHeader = (request: NextRequest) =>
-  request.headers.get("cookie") ?? "";
-
 const applyCookies = (
   response: AxiosResponse<User | null>,
   next: NextResponse
@@ -46,7 +43,7 @@ const isAuthorized = async (
   }
 
   try {
-    const sessionResponse = await checkSession(getCookieHeader(request));
+    const sessionResponse = await checkSession();
     return {
       authenticated: Boolean(sessionResponse.data),
       sessionResponse,
@@ -98,5 +95,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)"],
+  matcher: ["/profile/:path*", "/notes/:path*", "/sign-in", "/sign-up"],
 };
