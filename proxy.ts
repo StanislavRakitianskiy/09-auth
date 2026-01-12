@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { AxiosResponse } from "axios";
+import { checkSession } from "./lib/api/serverApi";
+import type { User } from "./types/user";
 
 const privateRoutes = ["/profile", "/notes"];
 const authRoutes = ["/sign-in", "/sign-up"];
@@ -8,22 +11,49 @@ const matches = (pathname: string, routes: string[]) =>
 
 const isApiRequest = (pathname: string) => pathname.startsWith("/api");
 
-const isAuthenticated = async (request: NextRequest) => {
+const getToken = (request: NextRequest, name: string) =>
+  request.cookies.get(name)?.value;
+
+const getCookieHeader = (request: NextRequest) =>
+  request.headers.get("cookie") ?? "";
+
+const applyCookies = (
+  response: AxiosResponse<User | null>,
+  next: NextResponse
+) => {
+  const setCookie = response.headers["set-cookie"];
+  if (!setCookie) return;
+  const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+  cookies.forEach((cookie) => {
+    next.headers.append("set-cookie", cookie);
+  });
+};
+
+const isAuthorized = async (
+  request: NextRequest
+): Promise<{
+  authenticated: boolean;
+  sessionResponse?: AxiosResponse<User | null>;
+}> => {
+  const accessToken = getToken(request, "accessToken");
+  const refreshToken = getToken(request, "refreshToken");
+
+  if (accessToken) {
+    return { authenticated: true };
+  }  
+  if (!refreshToken) {
+    return { authenticated: false };
+  }
+
   try {
-    const response = await fetch(new URL("/api/auth/session", request.url), {
-      headers: {
-        cookie: request.headers.get("cookie") ?? "",
-      },
-      cache: "no-store",
-    });
-
-    if (!response.ok) return false;
-
-    const text = await response.text();
-    return Boolean(text);
+    const sessionResponse = await checkSession(getCookieHeader(request));
+    return {
+      authenticated: Boolean(sessionResponse.data),
+      sessionResponse,
+    };
   } catch (error) {
-    console.error("Auth check failed", error);
-    return false;
+    console.error("Session refresh failed", error);
+    return { authenticated: false };
   }
 };
 
@@ -41,19 +71,30 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const authenticated = await isAuthenticated(request);
+  const { authenticated, sessionResponse } = await isAuthorized(request);
 
   if (privateMatch && !authenticated) {
     const loginUrl = new URL("/sign-in", request.url);
-    return NextResponse.redirect(loginUrl);
+        const response = NextResponse.redirect(loginUrl);
+    if (sessionResponse) {
+      applyCookies(sessionResponse, response);
+    }
+    return response;
   }
 
   if (authMatch && authenticated) {
-    const profileUrl = new URL("/profile", request.url);
-    return NextResponse.redirect(profileUrl);
+    const homeUrl = new URL("/", request.url);
+    const response = NextResponse.redirect(homeUrl);
+    if (sessionResponse) {
+      applyCookies(sessionResponse, response);
+    }
+    return response;
   }
-
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (sessionResponse) {
+    applyCookies(sessionResponse, response);
+  }
+  return response;
 }
 
 export const config = {

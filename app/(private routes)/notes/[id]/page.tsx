@@ -6,13 +6,13 @@ import { fetchNoteById } from "@/lib/api/serverApi";
 import { APP_URL, OG_IMAGE_URL } from "@/lib/seo";
 
 type PageProps = {
-   params: { id: string };
+   params: Promise<{ id: string }>;
 };
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { id } = params;
+  const { id } = await params;
   const cookieHeader = cookies().toString();
   const url = `${APP_URL}/notes/${id}`;
 
@@ -58,7 +58,7 @@ export async function generateMetadata({
 }
 
 export default async function NoteDetailsPage({ params }: PageProps) {
-  const { id } = params;
+  const { id } = await params;
   const cookieHeader = cookies().toString();
 
   const queryClient = new QueryClient();

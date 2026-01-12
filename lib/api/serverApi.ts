@@ -58,20 +58,16 @@ export const getMe = async (cookieHeader?: string): Promise<User> => {
 
 export const checkSession = async (
   cookieHeader?: string
-): Promise<User | null> => {
+): Promise<AxiosResponse<User | null>> => {
   try {
-    const { data } = await apiClient.get<User | null>("/auth/session", {
+    return await apiClient.get<User | null>("/auth/session", {
       headers: withCookies(cookieHeader),
     });
-
-    if (!data) return null;
-
-    return data;
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      return null;
+        if (axios.isAxiosError(error) && error.response) {
+      return error.response as AxiosResponse<User | null>;
     }
 
-    return null;
+    throw error;
   }
 };
