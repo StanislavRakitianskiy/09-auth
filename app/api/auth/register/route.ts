@@ -1,42 +1,45 @@
-import axios from "axios";
-import { NextRequest, NextResponse } from "next/server";
-import api from "../../api";
+import { NextRequest, NextResponse } from 'next/server';
+import { api } from '../../api';
+import { cookies } from 'next/headers';
+import { parse } from 'cookie';
+import { isAxiosError } from 'axios';
+import { logErrorResponse } from '../../_utils/utils';
 
-const applyCookies = (
-  response: { headers?: { "set-cookie"?: string[] | string } },
-  next: NextResponse
-) => {
-  const setCookie = response.headers?.["set-cookie"];
-  if (!setCookie) return;
-  const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
-  cookies.forEach((cookie) => {
-    next.headers.append("set-cookie", cookie);
-  });
-  };
-
-const handleError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    const status = error.response?.status ?? 500;
-    const data = error.response?.data ?? { message: error.message };
-    return NextResponse.json(data, { status });
-  }
-  return NextResponse.json({ message: "Internal server error" }, { status: 500 });
-};
-
-export async function POST(request: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await request.json();
-    const response = await api.post("/auth/register", body, {
-      headers: {
-        Cookie: request.headers.get("cookie") ?? "",
-      },
-    });
-    const nextResponse = NextResponse.json(response.data, {
-      status: response.status,
-    });
-    applyCookies(response, nextResponse);
-    return nextResponse;
+    const body = await req.json();
+
+    const apiRes = await api.post('auth/register', body);
+
+    const cookieStore = await cookies();
+    const setCookie = apiRes.headers['set-cookie'];
+
+    if (setCookie) {
+      const cookieArray = Array.isArray(setCookie) ? setCookie : [setCookie];
+      for (const cookieStr of cookieArray) {
+        const parsed = parse(cookieStr);
+
+        const options = {
+          expires: parsed.Expires ? new Date(parsed.Expires) : undefined,
+          path: parsed.Path,
+          maxAge: Number(parsed['Max-Age']),
+        };
+        if (parsed.accessToken) cookieStore.set('accessToken', parsed.accessToken, options);
+        if (parsed.refreshToken) cookieStore.set('refreshToken', parsed.refreshToken, options);
+      }
+      return NextResponse.json(apiRes.data, { status: apiRes.status });
+    }
+
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   } catch (error) {
-    return handleError(error);
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
+      return NextResponse.json(
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
+      );
+    }
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -1,59 +1,54 @@
-import axios from "axios";
-import { NextRequest, NextResponse } from "next/server";
-import api from "../../api";
+export const dynamic = 'force-dynamic';
 
-const applyCookies = (
-  response: { headers?: { "set-cookie"?: string[] | string } },
-  next: NextResponse
-) => {
-  const setCookie = response.headers?.["set-cookie"];
-  if (!setCookie) return;
-  const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
-  cookies.forEach((cookie) => {
-    next.headers.append("set-cookie", cookie);
-  });
-  };
+import { NextResponse } from 'next/server';
+import { api } from '../../api';
+import { cookies } from 'next/headers';
+import { logErrorResponse } from '../../_utils/utils';
+import { isAxiosError } from 'axios';
 
-const handleError = (error: unknown) => {
-  if (axios.isAxiosError(error)) {
-    const status = error.response?.status ?? 500;
-    const data = error.response?.data ?? { message: error.message };
-    return NextResponse.json(data, { status });
-  }
-  return NextResponse.json({ message: "Internal server error" }, { status: 500 });
-};
-
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const response = await api.get("/users/me", {
+    const cookieStore = await cookies();
+
+    const res = await api.get('/users/me', {
       headers: {
-        Cookie: request.headers.get("cookie") ?? "",
+        Cookie: cookieStore.toString(),
       },
     });
-    const nextResponse = NextResponse.json(response.data, {
-      status: response.status,
-    });
-    applyCookies(response, nextResponse);
-    return nextResponse;
+    return NextResponse.json(res.data, { status: res.status });
   } catch (error) {
-    return handleError(error);
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
+      return NextResponse.json(
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
+      );
+    }
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
 
-export async function PATCH(request: NextRequest) {
-try {
+export async function PATCH(request: Request) {
+  try {
+    const cookieStore = await cookies();
     const body = await request.json();
-    const response = await api.patch("/users/me", body, {
+
+    const res = await api.patch('/users/me', body, {
       headers: {
-        Cookie: request.headers.get("cookie") ?? "",
+        Cookie: cookieStore.toString(),
       },
     });
-    const nextResponse = NextResponse.json(response.data, {
-      status: response.status,
-    });
-    applyCookies(response, nextResponse);
-    return nextResponse;
+    return NextResponse.json(res.data, { status: res.status });
   } catch (error) {
-    return handleError(error);
+    if (isAxiosError(error)) {
+      logErrorResponse(error.response?.data);
+      return NextResponse.json(
+        { error: error.message, response: error.response?.data },
+        { status: error.status }
+      );
+    }
+    logErrorResponse({ message: (error as Error).message });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

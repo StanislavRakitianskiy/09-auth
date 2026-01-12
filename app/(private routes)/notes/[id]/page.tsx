@@ -59,13 +59,12 @@ export async function generateMetadata({
 
 export default async function NoteDetailsPage({ params }: PageProps) {
   const { id } = await params;
-  const cookieHeader = cookies().toString();
 
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ["note", id],
-    queryFn: () => fetchNoteById(id, cookieHeader),
+    queryFn: () => fetchNoteById(id),
   });
 
   return (

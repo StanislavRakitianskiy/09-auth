@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { cookies } from "next/headers";
 
 import css from "./Profile.module.css";
 import { getMe } from "@/lib/api/serverApi";
@@ -25,11 +24,10 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const cookieHeader = cookies().toString();
   let user: User | null = null;
 
   try {
-    user = await getMe(cookieHeader);
+    user = await getMe();
   } catch {
     user = null;
   }
