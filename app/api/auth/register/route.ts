@@ -27,16 +27,20 @@ export async function POST(req: NextRequest) {
         if (parsed.accessToken) cookieStore.set('accessToken', parsed.accessToken, options);
         if (parsed.refreshToken) cookieStore.set('refreshToken', parsed.refreshToken, options);
       }
-      return NextResponse.json(apiRes.data, { status: apiRes.status });
     }
 
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // Повертаємо дані навіть якщо cookies немає (успішна реєстрація)
+    return NextResponse.json(apiRes.data, { status: apiRes.status });
   } catch (error) {
     if (isAxiosError(error)) {
       logErrorResponse(error.response?.data);
+      const status = error.response?.status ?? 500;
+      const errorData = error.response?.data;
+      
+      // Повертаємо детальну інформацію про помилку від бекенду
       return NextResponse.json(
-        { error: error.message, response: error.response?.data },
-        { status: error.status }
+        errorData || { error: error.message },
+        { status }
       );
     }
     logErrorResponse({ message: (error as Error).message });

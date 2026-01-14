@@ -33,9 +33,13 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (isAxiosError(error)) {
       logErrorResponse(error.response?.data);
+      const status = error.response?.status ?? 500;
+      const errorData = error.response?.data;
+      
+      // Повертаємо детальну інформацію про помилку від бекенду
       return NextResponse.json(
-        { error: error.message, response: error.response?.data },
-        { status: error.status }
+        errorData || { error: error.message },
+        { status }
       );
     }
     logErrorResponse({ message: (error as Error).message });

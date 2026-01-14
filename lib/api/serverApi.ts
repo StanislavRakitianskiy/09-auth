@@ -25,7 +25,8 @@ const extractNotesResponse = (
 export const fetchNotes = async (
   params: FetchNotesParams
 ): Promise<FetchNotesResponse> => {
-  const cookieHeader = cookies().toString();
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
   const response = await apiClient.get<FetchNotesResponse | Note[]>("/notes", {
     params,
     headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
@@ -35,7 +36,8 @@ export const fetchNotes = async (
 };
 
 export const fetchNoteById = async (id: string): Promise<Note> => {
-  const cookieHeader = cookies().toString();
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
   const { data } = await apiClient.get<Note>(`/notes/${id}`, {
     headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
   });
@@ -43,7 +45,8 @@ export const fetchNoteById = async (id: string): Promise<Note> => {
 };
 
 export const getMe = async (): Promise<User> => {
-  const cookieHeader = cookies().toString();
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
   const { data } = await apiClient.get<User>("/users/me", {
     headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
   });
@@ -51,7 +54,8 @@ export const getMe = async (): Promise<User> => {
 };
 
 export const checkSession = async (): Promise<AxiosResponse<User | null>> => {
-  const cookieHeader = cookies().toString();
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
   try {
     return await apiClient.get<User | null>("/auth/session", {
       headers: cookieHeader ? { Cookie: cookieHeader } : undefined,

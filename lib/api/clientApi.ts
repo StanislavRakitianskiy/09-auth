@@ -50,8 +50,31 @@ const extractNotesResponse = (
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (axios.isAxiosError(error)) {
-    const message = (error.response?.data as { message?: string })?.message;
-    return message ?? error.message ?? fallback;
+    const responseData = error.response?.data;
+    
+    // Перевіряємо різні формати повідомлень про помилки
+    if (responseData) {
+      // Формат: { message: "..." }
+      if (typeof responseData === 'object' && 'message' in responseData) {
+        return String(responseData.message);
+      }
+      // Формат: { error: "..." }
+      if (typeof responseData === 'object' && 'error' in responseData) {
+        return String(responseData.error);
+      }
+      // Формат: { response: { message: "..." } } (від Next.js API route)
+      if (typeof responseData === 'object' && 'response' in responseData) {
+        const nestedResponse = (responseData as { response?: { message?: string; error?: string } }).response;
+        if (nestedResponse?.message) return nestedResponse.message;
+        if (nestedResponse?.error) return nestedResponse.error;
+      }
+      // Якщо responseData - це рядок
+      if (typeof responseData === 'string') {
+        return responseData;
+      }
+    }
+    
+    return error.message ?? fallback;
   }
 
   if (error instanceof Error) return error.message;

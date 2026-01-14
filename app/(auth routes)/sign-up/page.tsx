@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 
 import css from "./SignUp.module.css";
-import { register } from "@/lib/api/clientApi";
+import { register, checkSession } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 
 export default function SignUpPage() {
@@ -15,8 +15,21 @@ export default function SignUpPage() {
 
   const registerMutation = useMutation({
     mutationFn: register,
-    onSuccess: (user) => {
+    onSuccess: async (user) => {
+      // Встановлюємо користувача з відповіді реєстрації
       setUser(user);
+      
+      // Перевіряємо сесію, щоб переконатися, що cookies встановлені
+      try {
+        const sessionUser = await checkSession();
+        if (sessionUser) {
+          setUser(sessionUser);
+        }
+      } catch (error) {
+        // Якщо помилка, все одно переходимо на профіль, оскільки реєстрація успішна
+        console.error("Session check failed after registration:", error);
+      }
+      
       router.push("/profile");
     },
     onError: (error: Error) => setErrorMessage(error.message || "Error"),
@@ -24,6 +37,7 @@ export default function SignUpPage() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrorMessage(""); // Очищаємо попередні помилки
     const formData = new FormData(event.currentTarget);
     const email = String(formData.get("email"));
     const password = String(formData.get("password"));
