@@ -30,6 +30,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
 
       // Якщо це публічна сторінка (не приватна і не auth), не перевіряємо сесію
       if (!isPrivate && !isAuthPage) {
+        // Для публічних сторінок просто очищаємо стан авторизації
+        clearIsAuthenticated();
         setIsChecking(false);
         return;
       }
@@ -49,6 +51,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      // Завжди очищаємо стан перед встановленням нового
       if (user) {
         setUser(user);
       } else {

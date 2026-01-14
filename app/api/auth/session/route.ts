@@ -4,6 +4,7 @@ import { api } from "../../api";
 import { parse } from "cookie";
 import { isAxiosError } from "axios";
 import { logErrorResponse } from "../../_utils/utils";
+import type { User } from "@/types/user";
 
 export async function GET() {
   try {
@@ -11,12 +12,24 @@ export async function GET() {
     const accessToken = cookieStore.get("accessToken")?.value;
     const refreshToken = cookieStore.get("refreshToken")?.value;
 
+    // Якщо є accessToken, отримуємо дані користувача
     if (accessToken) {
-      return NextResponse.json({ success: true });
+      try {
+        const userRes = await api.get<User>("users/me", {
+          headers: {
+            Cookie: cookieStore.toString(),
+          },
+        });
+        return NextResponse.json(userRes.data, { status: 200 });
+      } catch (error) {
+        // Якщо помилка, повертаємо null
+        return NextResponse.json(null, { status: 200 });
+      }
     }
 
+    // Якщо є refreshToken, перевіряємо сесію
     if (refreshToken) {
-      const apiRes = await api.get("auth/session", {
+      const apiRes = await api.get<User | null>("auth/session", {
         headers: {
           Cookie: cookieStore.toString(),
         },
@@ -40,16 +53,19 @@ export async function GET() {
           if (parsed.refreshToken)
             cookieStore.set("refreshToken", parsed.refreshToken, options);
         }
-        return NextResponse.json({ success: true }, { status: 200 });
       }
+
+      return NextResponse.json(apiRes.data, { status: 200 });
     }
-    return NextResponse.json({ success: false }, { status: 200 });
+
+    // Якщо немає токенів, повертаємо null
+    return NextResponse.json(null, { status: 200 });
   } catch (error) {
     if (isAxiosError(error)) {
       logErrorResponse(error.response?.data);
-      return NextResponse.json({ success: false }, { status: 200 });
+      return NextResponse.json(null, { status: 200 });
     }
     logErrorResponse({ message: (error as Error).message });
-    return NextResponse.json({ success: false }, { status: 200 });
+    return NextResponse.json(null, { status: 200 });
   }
 }
