@@ -35,17 +35,17 @@ const isAuthorized = async (
   const accessToken = getToken(request, "accessToken");
   const refreshToken = getToken(request, "refreshToken");
 
-  if (accessToken) {
-    return { authenticated: true };
-  }  
-  if (!refreshToken) {
+  // Якщо немає жодного токена, користувач точно не авторизований
+  if (!accessToken && !refreshToken) {
     return { authenticated: false };
   }
 
+  // Перевіряємо сесію через API, щоб переконатися, що токени дійсні
   try {
     const sessionResponse = await checkSession();
+    const isAuthenticated = Boolean(sessionResponse.data);
     return {
-      authenticated: Boolean(sessionResponse.data),
+      authenticated: isAuthenticated,
       sessionResponse,
     };
   } catch (error) {
@@ -72,7 +72,7 @@ export async function proxy(request: NextRequest) {
 
   if (privateMatch && !authenticated) {
     const loginUrl = new URL("/sign-in", request.url);
-        const response = NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(loginUrl);
     if (sessionResponse) {
       applyCookies(sessionResponse, response);
     }
@@ -87,6 +87,7 @@ export async function proxy(request: NextRequest) {
     }
     return response;
   }
+
   const response = NextResponse.next();
   if (sessionResponse) {
     applyCookies(sessionResponse, response);

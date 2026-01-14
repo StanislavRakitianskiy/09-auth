@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Loader from "@/components/Loader/Loader";
 import { checkSession, logout } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
+import type { User } from "@/types/user";
 
 const privateRoutes = ["/profile", "/notes"];
 const authRoutes = ["/sign-in", "/sign-up"];
@@ -24,10 +25,29 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     let ignore = false;
 
     const verifySession = async () => {
-      setIsChecking(true);
-      const user = await checkSession();
+      const isPrivate = matchesRoute(pathname, privateRoutes);
+      const isAuthPage = matchesRoute(pathname, authRoutes);
 
-      if (ignore) return;
+      // Якщо це публічна сторінка (не приватна і не auth), не перевіряємо сесію
+      if (!isPrivate && !isAuthPage) {
+        setIsChecking(false);
+        return;
+      }
+
+      setIsChecking(true);
+      
+      let user: User | null = null;
+      try {
+        user = await checkSession();
+      } catch (error) {
+        // Якщо помилка при перевірці сесії, вважаємо користувача неавторизованим
+        user = null;
+      }
+
+      if (ignore) {
+        setIsChecking(false);
+        return;
+      }
 
       if (user) {
         setUser(user);
@@ -35,23 +55,22 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
         clearIsAuthenticated();
       }
 
-      const isPrivate = matchesRoute(pathname, privateRoutes);
-      const isAuthPage = matchesRoute(pathname, authRoutes);
-
+      // Якщо користувач на приватній сторінці і не авторизований - перенаправляємо на логін
       if (isPrivate && !user) {
-        await logout().catch(() => undefined);
         clearIsAuthenticated();
         router.replace("/sign-in");
         setIsChecking(false);
         return;
       }
 
+      // Якщо користувач вже авторизований і на сторінці авторизації - перенаправляємо на профіль
       if (isAuthPage && user) {
         router.replace("/profile");
         setIsChecking(false);
         return;
       }
 
+      // Якщо користувач не авторизований і на сторінці авторизації - дозволяємо залишитися
       setIsChecking(false);
     };
 
