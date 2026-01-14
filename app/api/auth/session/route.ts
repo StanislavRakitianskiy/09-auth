@@ -12,7 +12,6 @@ export async function GET() {
     const accessToken = cookieStore.get("accessToken")?.value;
     const refreshToken = cookieStore.get("refreshToken")?.value;
 
-    // Якщо є accessToken, отримуємо дані користувача
     if (accessToken) {
       try {
         const userRes = await api.get<User>("users/me", {
@@ -22,12 +21,10 @@ export async function GET() {
         });
         return NextResponse.json(userRes.data, { status: 200 });
       } catch (error) {
-        // Якщо помилка, повертаємо null
         return NextResponse.json(null, { status: 200 });
       }
     }
 
-    // Якщо є refreshToken, перевіряємо сесію
     if (refreshToken) {
       const apiRes = await api.get<User | null>("auth/session", {
         headers: {
@@ -58,7 +55,6 @@ export async function GET() {
       return NextResponse.json(apiRes.data, { status: 200 });
     }
 
-    // Якщо немає токенів, повертаємо null
     return NextResponse.json(null, { status: 200 });
   } catch (error) {
     if (isAxiosError(error)) {
