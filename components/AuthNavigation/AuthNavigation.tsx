@@ -2,27 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 import css from "./AuthNavigation.module.css";
-import { checkSession, logout } from "@/lib/api/clientApi";
+import { logout } from "@/lib/api/clientApi";
 import { useAuthStore } from "@/lib/store/authStore";
 
 export default function AuthNavigation() {
   const router = useRouter();
-  const { isAuthenticated, user, setUser, clearIsAuthenticated } = useAuthStore();
-
-  useEffect(() => {
-    if (isAuthenticated || user) return;
-
-    checkSession()
-      .then((sessionUser) => {
-        if (sessionUser) {
-          setUser(sessionUser);
-        }
-      })
-      .catch(() => undefined);
-  }, [isAuthenticated, setUser, user]);
+  const { isAuthenticated, user, clearIsAuthenticated } = useAuthStore();
 
   const handleLogout = async () => {
     await logout().catch(() => undefined);
