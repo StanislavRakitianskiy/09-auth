@@ -1,10 +1,22 @@
 import axios from "axios";
 
-const appBaseUrl =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`.replace(/\/$/, "")
-    : "http://localhost:3000");
+const resolvedBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, "");
+  }
+
+  return "http://localhost:3000";
+};
+
+const appBaseUrl = resolvedBaseUrl();
 
 const apiBase = `${appBaseUrl}/api`;
 

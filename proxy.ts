@@ -80,8 +80,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (authMatch && authenticated) {
-    const homeUrl = new URL("/", request.url);
-    const response = NextResponse.redirect(homeUrl);
+    const profileUrl = new URL("/profile", request.url);
+    const response = NextResponse.redirect(profileUrl);
     if (sessionResponse) {
       applyCookies(sessionResponse, response);
     }

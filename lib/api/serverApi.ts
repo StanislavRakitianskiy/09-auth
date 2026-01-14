@@ -2,10 +2,7 @@ import axios, { type AxiosResponse } from "axios";
 import { cookies } from "next/headers";
 
 import apiClient from "./api";
-import type {
-  FetchNotesParams,
-  FetchNotesResponse,
-} from "./clientApi";
+import type { FetchNotesParams, FetchNotesResponse } from "./clientApi";
 import type { Note } from "@/types/note";
 import type { User } from "@/types/user";
 
@@ -25,7 +22,6 @@ const extractNotesResponse = (
   return data;
 };
 
-
 export const fetchNotes = async (
   params: FetchNotesParams
 ): Promise<FetchNotesResponse> => {
@@ -38,7 +34,7 @@ export const fetchNotes = async (
   return extractNotesResponse(response);
 };
 
-  export const fetchNoteById = async (id: string): Promise<Note> => {
+export const fetchNoteById = async (id: string): Promise<Note> => {
   const cookieHeader = cookies().toString();
   const { data } = await apiClient.get<Note>(`/notes/${id}`, {
     headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
@@ -46,7 +42,7 @@ export const fetchNotes = async (
   return data;
 };
 
-  export const getMe = async (): Promise<User> => {
+export const getMe = async (): Promise<User> => {
   const cookieHeader = cookies().toString();
   const { data } = await apiClient.get<User>("/users/me", {
     headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
@@ -54,14 +50,14 @@ export const fetchNotes = async (
   return data;
 };
 
-  export const checkSession = async (): Promise<AxiosResponse<User | null>> => {
+export const checkSession = async (): Promise<AxiosResponse<User | null>> => {
   const cookieHeader = cookies().toString();
   try {
     return await apiClient.get<User | null>("/auth/session", {
       headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
     });
   } catch (error) {
-        if (axios.isAxiosError(error) && error.response) {
+    if (axios.isAxiosError(error) && error.response) {
       return error.response as AxiosResponse<User | null>;
     }
 
