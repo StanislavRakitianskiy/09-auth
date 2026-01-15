@@ -131,9 +131,20 @@ export const logout = async (): Promise<void> => {
 
 export const checkSession = async (): Promise<User | null> => {
   try {
-    const { data } = await apiClient.get<User | null>("/auth/session");
-    if (!data) return null;
-    return data;
+    // Перевіряємо сесію
+    const sessionRes = await apiClient.get<{ success: boolean }>("/auth/session");
+    if (!sessionRes.data?.success) {
+      return null;
+    }
+    
+    // Якщо сесія валідна, отримуємо дані користувача
+    try {
+      const { data } = await apiClient.get<User>("/users/me");
+      return data;
+    } catch (error) {
+      // Якщо не вдалося отримати дані користувача, повертаємо null
+      return null;
+    }
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       return null;

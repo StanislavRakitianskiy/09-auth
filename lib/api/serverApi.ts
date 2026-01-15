@@ -53,16 +53,16 @@ export const getMe = async (): Promise<User> => {
   return data;
 };
 
-export const checkSession = async (): Promise<AxiosResponse<User | null>> => {
+export const checkSession = async (): Promise<AxiosResponse<{ success: boolean }>> => {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
   try {
-    return await apiClient.get<User | null>("/auth/session", {
+    return await apiClient.get<{ success: boolean }>("/auth/session", {
       headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
     });
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {
-      return error.response as AxiosResponse<User | null>;
+      return error.response as AxiosResponse<{ success: boolean }>;
     }
 
     throw error;

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { AxiosResponse } from "axios";
 import { checkSession } from "./lib/api/serverApi";
-import type { User } from "./types/user";
 
 const privateRoutes = ["/profile", "/notes"];
 const authRoutes = ["/sign-in", "/sign-up"];
@@ -15,7 +14,7 @@ const getToken = (request: NextRequest, name: string) =>
   request.cookies.get(name)?.value;
 
 const applyCookies = (
-  response: AxiosResponse<User | null>,
+  response: AxiosResponse<{ success: boolean }>,
   next: NextResponse
 ) => {
   const setCookie = response.headers["set-cookie"];
@@ -30,7 +29,7 @@ const isAuthorized = async (
   request: NextRequest
 ): Promise<{
   authenticated: boolean;
-  sessionResponse?: AxiosResponse<User | null>;
+  sessionResponse?: AxiosResponse<{ success: boolean }>;
 }> => {
   const accessToken = getToken(request, "accessToken");
   const refreshToken = getToken(request, "refreshToken");
@@ -40,18 +39,27 @@ const isAuthorized = async (
     return { authenticated: false };
   }
 
-  // Перевіряємо сесію через API, щоб переконатися, що токени дійсні
-  try {
-    const sessionResponse = await checkSession();
-    const isAuthenticated = Boolean(sessionResponse.data);
-    return {
-      authenticated: isAuthenticated,
-      sessionResponse,
-    };
-  } catch (error) {
-    console.error("Session refresh failed", error);
-    return { authenticated: false };
+  // Якщо є accessToken, вважаємо користувача авторизованим без додаткового запиту
+  if (accessToken) {
+    return { authenticated: true };
   }
+
+  // Якщо немає accessToken, але є refreshToken, перевіряємо сесію
+  if (refreshToken) {
+    try {
+      const sessionResponse = await checkSession();
+      const isAuthenticated = sessionResponse.data?.success ?? false;
+      return {
+        authenticated: isAuthenticated,
+        sessionResponse,
+      };
+    } catch (error) {
+      console.error("Session refresh failed", error);
+      return { authenticated: false };
+    }
+  }
+
+  return { authenticated: false };
 };
 
 export async function proxy(request: NextRequest) {
@@ -80,8 +88,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (authMatch && authenticated) {
-    const profileUrl = new URL("/profile", request.url);
-    const response = NextResponse.redirect(profileUrl);
+    const homeUrl = new URL("/", request.url);
+    const response = NextResponse.redirect(homeUrl);
     if (sessionResponse) {
       applyCookies(sessionResponse, response);
     }
