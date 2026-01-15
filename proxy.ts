@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import type { AxiosResponse } from "axios";
 import { checkSession } from "./lib/api/serverApi";
 
@@ -9,9 +10,6 @@ const matches = (pathname: string, routes: string[]) =>
   routes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
 const isApiRequest = (pathname: string) => pathname.startsWith("/api");
-
-const getToken = (request: NextRequest, name: string) =>
-  request.cookies.get(name)?.value;
 
 const applyCookies = (
   response: AxiosResponse<{ success: boolean }>,
@@ -25,14 +23,13 @@ const applyCookies = (
   });
 };
 
-const isAuthorized = async (
-  request: NextRequest
-): Promise<{
+const isAuthorized = async (): Promise<{
   authenticated: boolean;
   sessionResponse?: AxiosResponse<{ success: boolean }>;
 }> => {
-  const accessToken = getToken(request, "accessToken");
-  const refreshToken = getToken(request, "refreshToken");
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+  const refreshToken = cookieStore.get("refreshToken")?.value;
 
   // Якщо немає жодного токена, користувач точно не авторизований
   if (!accessToken && !refreshToken) {
@@ -76,7 +73,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const { authenticated, sessionResponse } = await isAuthorized(request);
+  const { authenticated, sessionResponse } = await isAuthorized();
 
   if (privateMatch && !authenticated) {
     const loginUrl = new URL("/sign-in", request.url);
