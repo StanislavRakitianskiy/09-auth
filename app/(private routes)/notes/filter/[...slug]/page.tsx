@@ -8,13 +8,13 @@ import { APP_URL, OG_IMAGE_URL } from "@/lib/seo";
 const NOTES_PER_PAGE = 12;
 
 type PageProps = {
-  params: { slug: string[] };
+  params: Promise<{ slug: string[] }>;
 };
 
 export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const selected = slug?.[0] ?? "all";
   const label = selected === "all" ? "All" : selected;
   const pageTitle = `${label} notes | NoteHub`;
@@ -37,7 +37,7 @@ export async function generateMetadata({
 }
 
 export default async function FilteredNotesPage({ params }: PageProps) {
-  const { slug } = params;
+  const { slug } = await params;
   const selected = slug?.[0] ?? "all";
 
   const tagParam = selected === "all" ? undefined : (selected as NoteTag);
